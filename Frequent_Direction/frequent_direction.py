@@ -1,70 +1,51 @@
 
 # coding: utf-8
 
-# In[8]:
+# In[1]:
 
 
 from numpy import zeros, max, sqrt, isnan, isinf, dot, diag, count_nonzero
-from numpy.linalg import svd, linalg, LinAlgError
+from numpy.linalg import svd, linalg, LinAlgError, norm
 from scipy.linalg import svd as scipy_svd
-from scipy.sparse.linalg import svds as scipy_svds
+#from scipy.sparse.linalg import svds as scipy_svds
 
 
-# In[11]:
+# In[2]:
 
 
-from matrixSketcher import MatrixSketcher
+class FrequentDirections():
 
-
-# In[10]:
-
-
-class FrequentDirections(MatrixSketcherBase):
-
-    def __init__(self , d, ell):
+    def __init__(self , rows, columns):
         self.class_name = 'FrequentDirections'
-        self.d = d
-        self.ell = ell
-        self.m = 2*self.ell
-        self._sketch = zeros( (self.m, self.d) ) 
+        self.columns = columns
+        self.rows = rows
+        self.sketchMatrix = zeros((self.rows, self.columns)) 
         self.nextZeroRow = 0
-                 
-    def append(self,vector):     
+    
+    # Add new vector to the sketch matrix
+    def add(self,vector):     
         if count_nonzero(vector) == 0:
             return
+        
+        # If the approximate matrix is full, call the operate method to free half of the columns
+        if self.nextZeroRow >= self.rows:
+            self.__operate__()
 
-        if self.nextZeroRow >= self.m:
-            self.__rotate__()
-
-        self._sketch[self.nextZeroRow,:] = vector 
+        # Push the new vector to the next zero row and increase the next zero row index
+        self.sketchMatrix[self.nextZeroRow,:] = vector 
         self.nextZeroRow += 1
 
-        
-    def __rotate__(self):
-        try:
-            [_,s,Vt] = svd(self._sketch , full_matrices=False)
-        except linalg.LinAlgError as err:
-            [_,s,Vt] = scipy_svd(self._sketch, full_matrices = False)
-        #[_,s,Vt] = scipy_svds(self._sketch, k = self.ell)
 
+    # Shrink the approximate matrix
+    def __operate__(self):
+        # Calculating SVD
+        [U,s,Vt] = svd(self.sketchMatrix , full_matrices=False)
+        #Shrink the sketch matrix
+        self.sketchMatrix[:len(s),:] = dot(diag(s), Vt[:len(s),:])
+        self.sketchMatrix[int(len(s)/2):,:] = 0
+        self.nextZeroRow = int(len(s)/2)
         
-        if len(s) >= self.ell:
-            sShrunk = sqrt(s[:self.ell]**2 - s[self.ell-1]**2)
-            self._sketch[:self.ell:,:] = dot(diag(sShrunk), Vt[:self.ell,:])
-            self._sketch[self.ell:,:] = 0
-            self.nextZeroRow = self.ell
-        else:
-            self._sketch[:len(s),:] = dot(diag(s), Vt[:len(s),:])
-            self._sketch[len(s):,:] = 0
-            self.nextZeroRow = len(s)
-
-         
+    # Return the sketch matrix
     def get(self):
-        return self._sketch[:self.ell,:]
-
-
-# In[ ]:
-
-
-
+        return self.sketchMatrix[:self.rows,:]
 
