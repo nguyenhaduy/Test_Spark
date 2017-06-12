@@ -7,18 +7,22 @@ class FrequentDirections(object):
     
     def __init__(self , rows, columns, op='fd'):
         """
+		Matrix Sketching using Frequent Direction.
+		Choose 'fd' for normal Frequent Direction, 'ssd' for Space Saving Direction, 'cfd' for Compensative Frequent Direction, 'isvd' for iterative SVD, and a number between 0 and 1 for Parameterized Frequent Direction
         """
         self.class_name = 'FrequentDirections'
         self.op = op
         self.columns = columns
         self.rows = rows
         self.sketchMatrix = zeros((self.rows, self.columns)) 
-        self.S = np.zeros(self.columns)
+        self.S = zeros(self.columns)
         self.U = []
         self.Vt = []
         self.step = 1
         self.nextZeroRow = 0
         self.emptyRows = self.rows
+
+        # Parsing the operation parameter
         if self.op == 'fd':
             print("Matrix Sketching Using Frequent Direction")
             self.reduceRank = self.__FDOperate__
@@ -27,7 +31,7 @@ class FrequentDirections(object):
             self.op = 2
             self.reduceRank = self.__SSDOperate__
         elif self.op == 'cfd':
-            print("Matrix Sketching Using Compensative Freqent Direction")
+            print("Matrix Sketching Using Compensative Frequent Direction")
             self.reduceRank = self.__CFDperate__
         elif self.op == 'isvd':
             print("Matrix Sketching Using iSVD")
@@ -46,17 +50,14 @@ class FrequentDirections(object):
             return
         
         # If the approximate matrix is full, call the operate method to free half of the columns
-#         if self.nextZeroRow >= self.rows:
         if self.emptyRows <= 0:
             try:
                 [self.U,self.S,self.Vt] = svd(self.sketchMatrix , full_matrices=True)
             except LinAlgError as err:
                 [self.U,self.S,self.Vt] = scipy_svd(self.sketchMatrix , full_matrices = True)
             self.reduceRank()
-#             Push the new vector to the next zero row
-#             self.sketchMatrix[where(self.S == 0)[0][0],:] = vector
+
         # Push the new vector to the next zero row and increase the next zero row index
-#         else:    
         self.sketchMatrix[self.nextZeroRow,:] = vector
         self.nextZeroRow += 1
         self.emptyRows -= 1
@@ -69,16 +70,12 @@ class FrequentDirections(object):
             delta = sqrt(self.S[:]**2 - self.S[len(self.S)-1]**2)
             self.S = delta
             self.S[len(self.S)-1] = 0
-            print (self.S)
             #Shrink the sketch matrix
             self.sketchMatrix[:,:] = dot(diag(self.S), self.Vt[:self.rows,:])
             self.nextZeroRow = (len(self.S)-1)
             self.emptyRows += 1
         else:
-#             s = zeros((self.rows,self.columns))
-#             s[:len(self.S), :len(self.S)] = np.diag(self.S)
             self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), self.Vt[:len(self.S),:])
-#             self.sketchMatrix[len(self.S):,:] = 0
             self.nextZeroRow = len(self.S)-1
             self.emptyRows += 1
             
@@ -87,7 +84,6 @@ class FrequentDirections(object):
     def __iSVDOperate__(self):
         # Calculating matrix s
         self.S[len(self.S)-1] = 0
-        print (self.S)
         #Shrink the sketch matrix
         self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), self.Vt[:len(self.S),:])
         self.nextZeroRow = (len(self.S)-1)
@@ -99,17 +95,14 @@ class FrequentDirections(object):
         #Shrink the sketch matrix
         if len(self.S) >= self.rows:
             # Calculating matrix s
-#             delta = sqrt(self.S[:round(len(self.S)*(1-self.op))]**2 - self.S[-1]**2)
             delta = self.S[-1]**2
-            print (self.S)
             self.S[round(len(self.S)*(1-self.op)):] = sqrt(self.S[round(len(self.S)*(1-self.op)):]**2 - self.S[-1]**2)
-            print (self.S)
             #Shrink the sketch matrix
             self.sketchMatrix[:,:] = dot(diag(self.S), self.Vt[:self.rows,:])
             self.nextZeroRow = len(self.S) - 1
             self.emptyRows += 1
         else:
-            self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), Vt[:len(self.S),:])
+            self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), self.Vt[:len(self.S),:])
             self.sketchMatrix[int(len(self.S)/2):,:] = 0
             self.nextZeroRow = int(len(self.S)/2)
             self.emptyRows += 1
@@ -119,7 +112,6 @@ class FrequentDirections(object):
         # Calculating matrix s
         self.S[-1] = sqrt(self.S[-1]**2 + self.S[-2]**2)
         self.S[len(self.S)-2] = 0
-        print (self.S)
         #Shrink the sketch matrix
         self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), self.Vt[:len(self.S),:])
         self.nextZeroRow = len(self.S)-2
@@ -139,7 +131,6 @@ class FrequentDirections(object):
         delta = sqrt(self.S[:]**2 - self.S[len(self.S)-1]**2)
         self.S = delta
         self.S[len(self.S)-1] = 0
-        print (self.S)
         #Shrink the sketch matrix
         self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), self.Vt[:len(self.S),:])
         self.nextZeroRow = len(self.S) - 1
