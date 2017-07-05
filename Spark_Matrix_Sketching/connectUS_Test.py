@@ -1,11 +1,12 @@
-import findspark
-findspark.init('/home/duynguyen/spark-master')
+#import findspark
+#findspark.init('/home/duynguyen/spark-master')
 
 import numpy as np
 from scipy.io import mmread
 from matrix_sketching import MatrixSketching
-from pyspark import SparkContext
-sc = SparkContext(appName="PysparkSVDTest")
+from pyspark import SparkContext, SparkConf
+conf = SparkConf().setAppName("PysparkSVDTest")
+sc = SparkContext(conf=conf)
 
 
 data = mmread('connectus.mtx')
