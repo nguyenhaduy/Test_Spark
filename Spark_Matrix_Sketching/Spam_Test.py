@@ -9,7 +9,7 @@ conf = SparkConf().setAppName("PysparkSVDTest")
 sc = SparkContext(conf=conf)
 
 
-data, meta = arff.loadarff('spam_data.arff')
+data, meta = arff.loadarff('/home/duynguyen/Test_Spark/Spark_Matrix_Sketching/spam_data.arff')
 A = []
 for i in range(len(data)):
     A.append(np.hstack(data[i]).astype(np.integer))

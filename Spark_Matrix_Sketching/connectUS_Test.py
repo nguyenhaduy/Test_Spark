@@ -9,7 +9,7 @@ conf = SparkConf().setAppName("PysparkSVDTest")
 sc = SparkContext(conf=conf)
 
 
-data = mmread('connectus.mtx')
+data = mmread('/home/duynguyen/Test_Spark/Spark_Matrix_Sketching/connectus.mtx')
 temp = data.toarray()
 A = temp.transpose()
 
