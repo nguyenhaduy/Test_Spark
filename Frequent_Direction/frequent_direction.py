@@ -7,8 +7,11 @@ class FrequentDirections(object):
     
     def __init__(self , rows, columns, op='fd'):
         """
-		Matrix Sketching using Frequent Direction.
-		Choose 'fd' for normal Frequent Direction, 'ssd' for Space Saving Direction, 'cfd' for Compensative Frequent Direction, 'isvd' for iterative SVD, and a number between 0 and 1 for Parameterized Frequent Direction
+		Matrix Sketching using Frequent Direction. Choose:
+		'fd' for normal Frequent Direction;
+		'ssd' for Space Saving Direction; 
+		'isvd' for iterative SVD;
+		and a number between 0 and 1 for Parameterized Frequent Direction
         """
         self.class_name = 'FrequentDirections'
         self.op = op
@@ -65,19 +68,14 @@ class FrequentDirections(object):
 
     # Shrink the approximate matrix using Frequent Direction
     def __FDOperate__(self):
-        if len(self.S) >= self.rows:
-            # Calculating matrix s
-            delta = sqrt(self.S[:]**2 - self.S[len(self.S)-1]**2)
-            self.S = delta
-            self.S[len(self.S)-1] = 0
-            #Shrink the sketch matrix
-            self.sketchMatrix[:,:] = dot(diag(self.S), self.Vt[:self.rows,:])
-            self.nextZeroRow = (len(self.S)-1)
-            self.emptyRows += 1
-        else:
-            self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), self.Vt[:len(self.S),:])
-            self.nextZeroRow = len(self.S)-1
-            self.emptyRows += 1
+        # Calculating matrix s
+        delta = sqrt(self.S[:]**2 - self.S[len(self.S)-1]**2)
+        self.S = delta
+        self.S[len(self.S)-1] = 0
+        #Shrink the sketch matrix
+        self.sketchMatrix[:,:] = dot(diag(self.S), self.Vt[:self.rows,:])
+        self.nextZeroRow = (len(self.S)-1)
+        self.emptyRows += 1
             
         
     # Shrink the approximate matrix using iterative SVD
@@ -92,20 +90,13 @@ class FrequentDirections(object):
 
    	# Shrink the approximate matrix using Parameterized FD
     def __PFDOperate__(self):
+        # Calculating matrix s
+        delta = self.S[-1]**2
+        self.S[round(len(self.S)*(1-self.op)):] = sqrt(self.S[round(len(self.S)*(1-self.op)):]**2 - self.S[-1]**2)
         #Shrink the sketch matrix
-        if len(self.S) >= self.rows:
-            # Calculating matrix s
-            delta = self.S[-1]**2
-            self.S[round(len(self.S)*(1-self.op)):] = sqrt(self.S[round(len(self.S)*(1-self.op)):]**2 - self.S[-1]**2)
-            #Shrink the sketch matrix
-            self.sketchMatrix[:,:] = dot(diag(self.S), self.Vt[:self.rows,:])
-            self.nextZeroRow = len(self.S) - 1
-            self.emptyRows += 1
-        else:
-            self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), self.Vt[:len(self.S),:])
-            self.sketchMatrix[int(len(self.S)/2):,:] = 0
-            self.nextZeroRow = int(len(self.S)/2)
-            self.emptyRows += 1
+        self.sketchMatrix[:,:] = dot(diag(self.S), self.Vt[:self.rows,:])
+        self.nextZeroRow = len(self.S) - 1
+        self.emptyRows += 1
 
     # Shrink the approximate matrix using Space Saving Direction
     def __SSDOperate__(self):
@@ -117,25 +108,6 @@ class FrequentDirections(object):
         self.nextZeroRow = len(self.S)-2
         self.emptyRows += 1
         
-        
-    # Shrink the approximate matrix using Compensative Direction
-    def __CFDperate__(self):
-        # Calculating SVD
-        try:
-            [U,self.S,Vt] = svd(self.sketchMatrix, full_matrices=False)
-        except LinAlgError as err:
-            [U,self.S,Vt] = scipy_svd(self.sketchMatrix, full_matrices = False)
-        # Calculating matrix s
-        self.DELTA += self.S[-1]**2
-        self.S = sqrt(self.S[:len(self.S)]**2 + self.DELTA)
-        delta = sqrt(self.S[:]**2 - self.S[len(self.S)-1]**2)
-        self.S = delta
-        self.S[len(self.S)-1] = 0
-        #Shrink the sketch matrix
-        self.sketchMatrix[:len(self.S),:] = dot(diag(self.S), self.Vt[:len(self.S),:])
-        self.nextZeroRow = len(self.S) - 1
-        self.emptyRows += 1
-
 
     # Return the sketch matrix
     def getSketchMatrix(self):
