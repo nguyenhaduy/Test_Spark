@@ -53,7 +53,7 @@ class FrequentDirections(object):
         
         # If the approximate matrix is full, call the operate method to free half of the columns
         if self.emptyRows <= 0:
-            [self.U,self.S,self.Vt] = randomized_svd(self.sketchMatrix,n_components=self.rows,n_iter=5,random_state=None)
+            [self.U,self.S,self.Vt] = randomized_svd(self.sketchMatrix,n_components=self.rows,n_iter=1,random_state=None)
             self.reduceRank()
 
         # Push the new vector to the next zero row and increase the next zero row index
