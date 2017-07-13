@@ -45,7 +45,9 @@ class MatrixSketching(object):
             self.DELTA = 0
         elif self.op == 'random':
             print("Matrix Sketching Using Random Reduce")
-            self.random_matrix = random.randn(int(self.rows/2),self.rows)*(1/(self.rows)**2)
+            # self.random_matrix = random.rand(int(self.rows/2),self.rows)*(1/(self.rows)**2)
+            self.random_matrix = random.rand(self.rows-1,self.rows)*(1/(self.rows)**2)
+            # self.random_matrix = random.beta(1,1,[int(self.rows/2),self.rows])*(1/(self.rows)**2)
             self.reduceRank = self.__randomOperate__
         else:
             print("Type of Reduce Rank algorithm is not correct")
@@ -117,9 +119,9 @@ class MatrixSketching(object):
         # Creating a random matrix
         #random_matrix = random.randn(int(self.rows/2),self.rows)*(1/(self.rows)**2)
         #Shrink the sketch matrix
-        self.sketchMatrix[:int(self.rows/2),:] = self.random_matrix.dot(self.sketchMatrix)
-        self.nextZeroRow = self.rows - int(self.rows/2)
-        self.emptyRows += int(self.rows/2)
+        self.sketchMatrix[:(self.rows -1),:] = self.random_matrix.dot(self.sketchMatrix)
+        self.nextZeroRow = self.rows - 1
+        self.emptyRows += 1
         
 
     # Return the sketch matrix
